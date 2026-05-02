@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Keydraw</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <svg id="canvas" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <rect id="canvas-bg" x="0" y="0" width="100%" height="100%" fill="transparent"/>
+      <g id="objects-layer"></g>
+      <g id="overlay-layer"></g>
+    </svg>
+
+    <aside id="palette">
+      <div class="palette-header">
+        <span>Shapes</span>
+        <button id="palette-toggle" title="Collapse">−</button>
+      </div>
+      <div class="palette-body">
+        <div class="palette-hint">Press <b>s</b> then key, or click:</div>
+        <button class="p-item" data-shape="rect"    ><span class="key">r</span> Rectangle</button>
+        <button class="p-item" data-shape="square"  ><span class="key">s</span> Square</button>
+        <button class="p-item" data-shape="circle"  ><span class="key">c</span> Circle</button>
+        <button class="p-item" data-shape="diamond" ><span class="key">d</span> Diamond</button>
+        <button class="p-item" data-shape="arrow"   ><span class="key">a</span> Arrow</button>
+        <button class="p-item" data-shape="text"    ><span class="key">t</span> Text</button>
+        <hr/>
+        <div class="palette-hint">Actions</div>
+        <div class="toolbar-row">
+          <button id="btn-undo" title="Undo (⌘Z)">↩</button>
+          <button id="btn-redo" title="Redo (⌘⇧Z)">↪</button>
+          <button id="btn-save" title="Export JSON">💾</button>
+          <button id="btn-load" title="Import JSON">📂</button>
+          <button id="btn-export-png" title="Export PNG">PNG</button>
+          <button id="btn-export-svg" title="Export SVG">SVG</button>
+          <button id="grid-toggle" title="Grid Snap (g)">⊞</button>
+        </div>
+        <hr/>
+        <div class="palette-hint objects-hdr">
+          Objects <button id="objects-toggle" title="Collapse">−</button>
+        </div>
+        <ul id="object-list"></ul>
+      </div>
+    </aside>
+
+    <aside id="properties" class="hidden">
+      <div class="palette-header">
+        <span>Properties</span>
+        <button id="properties-toggle" title="Collapse">−</button>
+      </div>
+      <div class="properties-body"></div>
+    </aside>
+
+    <div id="hud">
+      <div id="mode-indicator">READY</div>
+      <div id="hint"></div>
+    </div>
+
+    <div id="menu" class="hidden">
+      <div class="menu-title"></div>
+      <ul class="menu-items"></ul>
+    </div>
+
+    <div id="color-picker" class="hidden">
+      <div class="menu-title">Color (hex / name / esc)</div>
+      <input id="color-input" type="text" placeholder="#3b82f6" />
+      <div class="swatches">
+        <button data-color="#ef4444" style="background:#ef4444"></button>
+        <button data-color="#f59e0b" style="background:#f59e0b"></button>
+        <button data-color="#10b981" style="background:#10b981"></button>
+        <button data-color="#3b82f6" style="background:#3b82f6"></button>
+        <button data-color="#8b5cf6" style="background:#8b5cf6"></button>
+        <button data-color="#ec4899" style="background:#ec4899"></button>
+        <button data-color="#1f2937" style="background:#1f2937"></button>
+        <button data-color="#ffffff" style="background:#ffffff;border:1px solid #999"></button>
+      </div>
+    </div>
+
+    <input id="file-input" type="file" accept="image/*" class="hidden" />
+
+    <textarea id="text-edit" class="hidden" spellcheck="false"></textarea>
+
+    <div id="bottom-controls">
+      <div class="bc-group" title="Zoom Sensitivity">
+        <label>Zoom</label>
+        <input id="zoom-sensitivity" type="range" min="0.01" max="0.15" step="0.01" value="0.05"/>
+        <span id="zoom-label">5%</span>
+      </div>
+      <div class="bc-group" title="Auto-connect new shapes with arrow">
+        <label for="auto-connect">Link</label>
+        <input id="auto-connect" type="checkbox" checked/>
+      </div>
+      <div class="bc-group" title="Grid Layout Columns">
+        <label>Grid</label>
+        <input id="grid-columns" type="number" min="1" max="20" value="4"/>
+      </div>
+      <div class="bc-group" title="Theme">
+        <label for="theme-select">Theme</label>
+        <select id="theme-select">
+          <option value="light">Light</option>
+          <option value="system">System</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="help-toggle" title="Help (?)">?</div>
+    <div id="help-panel" class="hidden">
+      <h3>Keydraw shortcuts</h3>
+      <ul>
+        <li><b>s</b> — shape menu (r rect / s square / c circle / d diamond / a arrow / t text)</li>
+        <li><b>Click</b> — select. <b>Shift+Click</b> — multi-select. <b>Drag empty</b> — marquee select.</li>
+        <li><b>Esc</b> — deselect / cancel.</li>
+        <li><b>t</b> — edit text. <b>c</b> — color. <b>i</b> — image fill. <b>x</b> — clear image.</li>
+        <li><b>l</b> — cycle line style (solid/dashed/dotted). <b>w</b> — cycle width. <b>b</b> — toggle bidirectional arrow.</li>
+        <li><b>+</b> / <b>-</b> — connector count. <b>]</b> / <b>[</b> — bring front / send back.</li>
+        <li><b>Shift+Arrows</b> — move by size+25%. <b>Arrows</b> — nudge. <b>g</b> — toggle grid snap.</li>
+        <li><b>⌘Z</b> / <b>⌘⇧Z</b> — undo / redo. <b>⌘C</b>/<b>⌘V</b> — copy/paste. <b>⌘D</b> — duplicate.</li>
+        <li><b>⌘G</b> — group. <b>⌘⇧U</b> — ungroup. <b>⌘⇧H</b> — horizontal layout. <b>⌘⇧J</b> — vertical layout. <b>⌘⇧G</b> — grid layout.</li>
+        <li><b>⌘+Arrows</b> — navigate to nearest object in that direction.</li>
+        <li><b>Scroll</b> — zoom. <b>Space+drag</b> — pan. <b>⌘=/-/0</b> — zoom in/out/reset.</li>
+        <li><b>Delete</b> — delete selected. <b>?</b> — toggle this panel.</li>
+        <li>New shapes auto-connect via arrow when placed with a selection.</li>
+        <li>Auto-saves to browser. Use toolbar for JSON export/import and PNG/SVG export.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
